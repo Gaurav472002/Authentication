@@ -1,10 +1,17 @@
-// LEVEL 2 AUTHENTICATION
+// LEVEL 3 AUTHENTICATION  (HASHING)
+// Same password will be turned into same hash no matter if the users are different but their passwords are same
+
+/* How hackers crack passwords using dictionary tables thorugh hash tables 
+
+Make a hash table -> Take all words from dictionaray. All numbers from a telephone book, all combindations of characters upto 6 places
+total combinations formed = 19775759664 a high end GPU will take 0.9 sec to calculate all this combinations and crack the password */
 require('dotenv').config();
 
 const express = require("express");
 const { default: mongoose } = require("mongoose");
 const app = express();
-const encrypt = require("mongoose-encryption");
+
+const md5 = require("md5");
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended:true}));
@@ -23,7 +30,6 @@ const userSchema = new mongoose.Schema({
 });
 
 
-userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ["password"]}); // only encrypt the passwrod field
 
 // create a new model for the user
 
@@ -45,7 +51,7 @@ app.get("/register",function(req,res){
 app.post("/register", function(req, res){
     const newUser = new User({
       email: req.body.username,
-      password: req.body.password
+      password: md5(req.body.password)
     });
   
     newUser.save() // when the deatils of the new user is saved the password is encrypted
@@ -61,7 +67,7 @@ app.post("/register", function(req, res){
 
   app.post("/login", (req, res) => {
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password); // converting password to hashed password so that we are able to match both the fields
   
     User.findOne({email: username}) // while finding the user the password is decrypted
       .then((foundUser) => {
